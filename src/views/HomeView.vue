@@ -2,27 +2,34 @@
   <div class="home">
     <div class="main" v-if="data.name">
       <div class="header">
-        <span class="number">{{ data.name[0] }}同学，您好</span>
+        <span class="name">{{ data.name[0] }}同学，您好！</span>
         <el-button type="text" style="margin-left: auto;" @click="handleLogout">注销</el-button>
       </div>
       <div class="content" style="text-align:center;">
-        <div style="font-size: 24px;">平均时长</div>
-        <div style="margin-top: 20px;"><span class="number">{{ data.avgHours }}</span>小时</div>
-<!--        <div style="margin-top: 20px;color: #666;font-size: 12px;">-->
-<!--          保持 8.46 小时， 19:12 下班-->
-<!--        </div>-->
+        <div style="font-size: 16px;">平均时长</div>
+        <div style="margin-top: 0px;"><span class="number">{{ data.avgHours }}</span> 小时</div>
+      </div>
+      <div class="bottom">
+        <div class="bottom-left">
+          <div class="bottom-title">追求奋斗者</div>
+          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time102,'hh:mm') }}</span>下班</div>
+        </div>
+        <div class="bottom-right">
+          <div class="bottom-title">追求实践者</div>
+          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time9,'hh:mm') }}</span>下班</div>
+        </div>
       </div>
     </div>
     <div class="main" v-if="!data.name">
       <div class="header">
-        <span class="number">万兴人，您好</span>
+        <span class="name">万兴人，您好！</span>
       </div>
       <div class="content input-content">
-        <el-form ref="myform" :rules="rules" :model="form" label-width="60px">
-          <el-form-item label="工号" prop="wsId">
-            <el-input v-model="form.wsId"></el-input>
+        <el-form ref="myform" :rules="rules" :model="form">
+          <el-form-item prop="wsId">
+            <el-input v-model="form.wsId" placeholder="工号"></el-input>
           </el-form-item>
-          <el-form-item label="密码" prop="password">
+          <el-form-item prop="password">
             <el-popover
               placement="top-start"
               title="加密密码"
@@ -31,13 +38,15 @@
               content="请在员工之家抓包获取算法加密过的32位字符"
             >
               <template #reference>
-                <el-input type="password" v-model="form.password"></el-input>
+                <el-input type="password" placeholder="密码" v-model="form.password"></el-input>
               </template>
             </el-popover>
           </el-form-item>
           <el-form-item>
-            <!--            <el-checkbox label="记住账号和密码" name="type" checked></el-checkbox>-->
-            <el-button style="margin-left: auto;" @click="handleLogin">登录</el-button>
+            <el-button type="primary"
+                       style="background-color:#006DFF;width: 100%;font-size: 18px;font-weight: 700;letter-spacing:14px;height: 42px;"
+                       @click="handleLogin">登录
+            </el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -59,11 +68,11 @@ export default {
       calData: {},
       rules: {
         wsId: [
-          {required: true, message: '请输工号', trigger: 'blur'},
+          {required: true, message: '请输入工号', trigger: 'blur'},
           {min: 8, max: 8, message: '长度为 8 位字符', trigger: 'blur'}
         ],
         password: [
-          {required: true, message: '请输加密密码', trigger: 'blur'},
+          {required: true, message: '请输入密码', trigger: 'blur'},
           {min: 32, max: 32, message: '长度为 32 位字符', trigger: 'blur'}
         ],
       }
@@ -88,6 +97,8 @@ export default {
         localStorage.setItem('password', this.form.password)
         const data = response.data.data
         console.log(data)
+        const lastName = `${data.name[data.name.length - 1]}`
+        const name = `小${lastName}${lastName}宝贝`
         const timeDiff = Math.round((new Date().getTime() - new Date(data.joinDate).getTime()) / 1000 / 60 / 60 / 24)
         const work_day = Math.floor(data.attend / data.avgHours)
         const left_day = data.needAttend + 1;
@@ -95,13 +106,45 @@ export default {
         const now = new Date()
         const yestoday = new Date(now.getTime() - 1000 * 24 * 60 * 60)
         const left_time75 = new Date('2022-10-01 18:40:00') // 下班时间，随便举某天的下班18:40点 为7.5个小时
-        const left_hour102 = ((totol_day * 10.2 - work_day * data.attend) / left_day).toFixed(2)// 奋斗者 对标10.2个小时
-        const left_time102 = new Date(left_time75.getTime() + (10.2 - left_hour102) * 60 * 60 * 1000)// 奋斗者 对标10.2个小时
-        const left_hour9 = ((totol_day * 9 - work_day * data.attend) / left_day).toFixed(2)// 思考者 对标9个小时
-        const left_time9 = new Date(left_time75.getTime() + (9 - left_hour102) * 60 * 60 * 1000)// 思考者 对标9个小时
+        const left_hour102 = ((totol_day * 10.2 - work_day * data.avgHours) / left_day).toFixed(2)// 奋斗者 对标10.2个小时
+        const left_time102 = new Date(left_time75.getTime() + (left_hour102 - 7.5) * 60 * 60 * 1000)// 奋斗者 对标10.2个小时
+        const left_hour9 = ((totol_day * 9 - work_day * data.avgHours) / left_day).toFixed(2)// 思考者 对标9个小时
+        const left_time9 = new Date(left_time75.getTime() + (left_hour9 - 7.5) * 60 * 60 * 1000)// 思考者 对标9个小时
         this.data = data
-        this.calInfo = {}
+        this.calData = {
+          left_time102,
+          left_time9,
+        }
+        console.log(this.calData)
       })
+    },
+    formatTime(time, format = "yyyy-MM-dd hh:mm:ss") {
+      let date = new Date(time);
+      let year = '0' + date.getFullYear();
+      let month = '0' + (date.getMonth() + 1);
+      let day = '0' + date.getDate();
+      let hour = '0' + date.getHours();
+      let minute = '0' + date.getMinutes();
+      let second = '0' + date.getSeconds();
+      if (format.includes('y')) {
+        format = format.replace(/y+/, year.slice(-(format.match(/y+/)[0].length)));
+      }
+      if (format.includes('M')) {
+        format = format.replace(/M+/, month.slice(-(format.match(/M+/)[0].length)));
+      }
+      if (format.includes('d')) {
+        format = format.replace(/d+/, day.slice(-(format.match(/d+/)[0].length)));
+      }
+      if (format.includes('h')) {
+        format = format.replace(/h+/, hour.slice(-(format.match(/h+/)[0].length)));
+      }
+      if (format.includes('m')) {
+        format = format.replace(/m+/, minute.slice(-(format.match(/m+/)[0].length)));
+      }
+      if (format.includes('s')) {
+        format = format.replace(/s+/, second.slice(-(format.match(/s+/)[0].length)));
+      }
+      return format;
     },
     handleLogin() {
       this.$refs.myform.validate((valid) => {
@@ -112,10 +155,10 @@ export default {
         }
       });
     },
-    handleLogout(){
-      this.data={}
+    handleLogout() {
+      this.data = {}
       localStorage.clear()
-      this.form={
+      this.form = {
         wsId: "",
         password: "",
       }
@@ -129,24 +172,39 @@ export default {
   font-size: 14px;
 
   .main {
+    padding: 8px 16px;
+    background-color: #fff;
+    border-radius: 4px;
+
     .header {
-      padding: 10px 20px;
-      background-color: rgba(255, 255, 255, 0.6);
       display: flex;
       align-items: center;
     }
 
     .content {
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 20px;
+      margin: 12px 0;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
     }
 
-    .input-content {
+    .bottom {
+      display: flex;
+      text-align: center;
 
+      > div {
+        width: 50%;
+      }
+    }
+
+    .name {
+      font-size: 18px;
+      font-weight: 700;
     }
 
     .number {
-      font-size: 18px;
+      font-weight: 700;
+      font-size: 24px;
     }
   }
 
