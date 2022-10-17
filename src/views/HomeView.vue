@@ -1,48 +1,6 @@
 <template>
   <div class="home">
-    <div class="main card" v-if="data.name">
-      <div class="header">
-        <span class="name">{{ data.name[0] }}同学，您好！</span>
-        <el-button type="text" style="margin-left: auto;" @click="handleLogout">注销</el-button>
-      </div>
-      <div class="content" style="text-align:center;">
-        <div style="font-size: 16px;">平均时长</div>
-        <div style="margin-top: 0px;"><span class="number">{{ data.avgHours }}</span> 小时</div>
-      </div>
-      <div class="bottom">
-        <div class="bottom-left">
-          <div class="bottom-title">追求奋斗者</div>
-          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time102,'hh:mm') }}</span>下班</div>
-        </div>
-        <div class="bottom-right">
-          <div class="bottom-title">追求实践者</div>
-          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time9,'hh:mm') }}</span>下班</div>
-        </div>
-      </div>
-    </div>
-    <div class="card" style="margin-top: 20px;">
-      本月共有{{total_day}}工作日，本月已经熬过了{{calData.work_day}}个工作日，包含今天还剩工作日{{calData.left_day}}天
-      <el-progress :text-inside="true" :stroke-width="26" :percentage="calData.percent" :format="format"></el-progress>
-    </div>
-    <div class="card" style="margin-top: 20px;">
-      <div class="row">
-        <div>
-          <div>距离入职</div>
-          <div>{{data.joinDate}}</div>
-        </div>
-        <div class="number">{{calData.timeDiff}}天</div>
-      </div>
-    </div>
-    <div class="holiday card" style="margin-top: 20px;">
-      <div class="row">
-        <div class="">
-          <div class="title">春节倒计时</div>
-          <div>2023-01-22</div>
-        </div>
-        <div class="number">{{calHoliday}}天</div>
-      </div>
-    </div>
-    <div class="main" v-if="!data.name">
+    <div class="main card" v-if="!data.name">
       <div class="header">
         <span class="name">万兴人，您好！</span>
       </div>
@@ -71,6 +29,69 @@
             </el-button>
           </el-form-item>
         </el-form>
+      </div>
+    </div>
+    <div class="main card" v-if="data.name">
+      <div class="header">
+        <span class="name">{{ data.name[0] }}同学，您好！</span>
+        <el-button type="text" style="margin-left: auto;" @click="handleLogout">注销</el-button>
+      </div>
+      <div class="content" style="text-align:center;">
+        <div>
+          <div style="font-size: 16px;">平均时长</div>
+          <div style="margin-top: 0px;"><span class="number">{{ data.avgHours }}</span> 小时</div>
+        </div>
+        <div>
+          <div style="font-size: 16px;">总时长</div>
+          <div style="margin-top: 0px;"><span class="number">{{ data.attend }}</span> 小时</div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="bottom-left">
+          <div class="bottom-title">追求奋斗者</div>
+          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time102,'hh:mm') }}</span>下班</div>
+        </div>
+        <div class="bottom-right">
+          <div class="bottom-title">追求实践者</div>
+          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time9,'hh:mm') }}</span>下班</div>
+        </div>
+      </div>
+    </div>
+    <div class="card"  v-if="data.name" style="margin-top: 20px;">
+      <div class="content" style="text-align:center;">
+        <div>
+          <div style="font-size: 16px;">本月共有</div>
+          <div style="margin-top: 0px;"><span class="number">{{total_day}}</span> 工作日</div>
+        </div>
+        <div>
+          <div style="font-size: 16px;">已经熬过</div>
+          <div style="margin-top: 0px;"><span class="number">{{calData.work_day}}</span> 工作日</div>
+        </div>
+      </div>
+      <div class="content" style="text-align:center;">
+        <div>
+          <div style="font-size: 16px;">还剩</div>
+          <div style="margin-top: 0px;"><span class="number">{{calData.left_day}}</span> 工作日</div>
+        </div>
+      </div>
+      <el-progress :text-inside="true" :stroke-width="26" :percentage="calData.percent" :format="format"></el-progress>
+    </div>
+    <div class="card"  v-if="data.name" style="margin-top: 20px;">
+      <div class="row">
+        <div>
+          <div>距离入职</div>
+          <div>{{data.joinDate}}</div>
+        </div>
+        <div class="number">{{calData.timeDiff}}天</div>
+      </div>
+    </div>
+    <div class="holiday card" style="margin-top: 20px;">
+      <div class="row">
+        <div class="">
+          <div class="title">春节倒计时</div>
+          <div>2023-01-22</div>
+        </div>
+        <div class="number">{{calHoliday}}天</div>
       </div>
     </div>
   </div>
@@ -229,7 +250,14 @@ export default {
     background-color: #fff;
     border-radius: 4px;
   }
-
+  .content {
+    margin: 12px 0;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+  }
   .main {
 
     .header {
@@ -237,12 +265,7 @@ export default {
       align-items: center;
     }
 
-    .content {
-      margin: 12px 0;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      border-top: 1px solid rgba(0, 0, 0, 0.1);
-    }
+
 
     .bottom {
       display: flex;
