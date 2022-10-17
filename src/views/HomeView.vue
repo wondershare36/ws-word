@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div class="main" v-if="data.name">
+    <div class="main card" v-if="data.name">
       <div class="header">
         <span class="name">{{ data.name[0] }}同学，您好！</span>
         <el-button type="text" style="margin-left: auto;" @click="handleLogout">注销</el-button>
@@ -18,6 +18,28 @@
           <div class="bottom-title">追求实践者</div>
           <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time9,'hh:mm') }}</span>下班</div>
         </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top: 20px;">
+      本月共有{{total_day}}工作日，本月已经熬过了{{calData.work_day}}个工作日，包含今天还剩工作日{{calData.left_day}}天
+      <el-progress :text-inside="true" :stroke-width="26" :percentage="calData.percent" :format="format"></el-progress>
+    </div>
+    <div class="card" style="margin-top: 20px;">
+      <div class="row">
+        <div>
+          <div>距离入职</div>
+          <div>{{data.joinDate}}</div>
+        </div>
+        <div class="number">{{calData.timeDiff}}天</div>
+      </div>
+    </div>
+    <div class="holiday card" style="margin-top: 20px;">
+      <div class="row">
+        <div class="">
+          <div class="title">春节倒计时</div>
+          <div>2023-01-22</div>
+        </div>
+        <div class="number">{{calHoliday}}天</div>
       </div>
     </div>
     <div class="main" v-if="!data.name">
@@ -64,8 +86,8 @@ export default {
         wsId: "",
         password: "",
       },
+      total_day:0,
       data: {},
-      calData: {},
       rules: {
         wsId: [
           {required: true, message: '请输入工号', trigger: 'blur'},
@@ -79,6 +101,7 @@ export default {
     }
   },
   mounted() {
+    this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),
       password: localStorage.getItem('password'),
@@ -86,7 +109,56 @@ export default {
     if (!this.form.wsId || !this.form.password) return
     this.getData()
   },
+  computed:{
+    calHoliday(){
+      const timeDiff = Math.round((new Date('2023-01-22').getTime() - new Date().getTime()) / 1000 / 60 / 60 / 24)
+      return timeDiff
+    },
+    calData(){
+      const data=this.data
+      if(!data.name) return {
+      }
+      const lastName = `${data.name[data.name.length - 1]}`
+      const name = `小${lastName}${lastName}宝贝`
+      const timeDiff = Math.round((new Date().getTime() - new Date(data.joinDate).getTime()) / 1000 / 60 / 60 / 24)
+      const work_day = Math.floor(data.needAttend / 7.5)
+      const totol_day = this.total_day
+      const left_day = totol_day-work_day
+      const now = new Date()
+      const yestoday = new Date(now.getTime() - 1000 * 24 * 60 * 60)
+      const left_time75 = new Date('2022-10-01 18:40:00') // 下班时间，随便举某天的下班18:40点 为7.5个小时
+      const left_hour102 = ((totol_day * 10.2 - work_day * data.avgHours) / left_day).toFixed(2)// 奋斗者 对标10.2个小时
+      const left_time102 = new Date(left_time75.getTime() + (left_hour102 - 7.5) * 60 * 60 * 1000)// 奋斗者 对标10.2个小时
+      const left_hour9 = ((totol_day * 9 - work_day * data.avgHours) / left_day).toFixed(2)// 思考者 对标9个小时
+      const left_time9 = new Date(left_time75.getTime() + (left_hour9 - 7.5) * 60 * 60 * 1000)// 思考者 对标9个小时
+      const percent= Math.round(work_day/totol_day*100)
+      console.log(percent)
+      return{
+        left_time9,
+        left_time102,
+        left_day,
+        work_day,
+        percent,
+        timeDiff
+      }
+    }
+  },
   methods: {
+    format(percentage) {
+      return `${this.calData.work_day}天`;
+    },
+    async getWordDay(){
+      const {data}=await this.axios.get('https://api.apihubs.cn/holiday/get')
+      console.log(data)
+      let total_day=0
+      data.data.list.forEach((day)=>{
+        if(day.workday===1){
+          total_day++
+        }
+      })
+      console.log(total_day)
+      this.total_day=total_day
+    },
     getData() {
       this.axios.post('https://gw.300624.cn/users/authentication', this.form).then((response) => {
         if (response.data.status > 200) {
@@ -97,25 +169,7 @@ export default {
         localStorage.setItem('password', this.form.password)
         const data = response.data.data
         console.log(data)
-        const lastName = `${data.name[data.name.length - 1]}`
-        const name = `小${lastName}${lastName}宝贝`
-        const timeDiff = Math.round((new Date().getTime() - new Date(data.joinDate).getTime()) / 1000 / 60 / 60 / 24)
-        const work_day = Math.floor(data.attend / data.avgHours)
-        const left_day = data.needAttend + 1;
-        const totol_day = work_day + left_day
-        const now = new Date()
-        const yestoday = new Date(now.getTime() - 1000 * 24 * 60 * 60)
-        const left_time75 = new Date('2022-10-01 18:40:00') // 下班时间，随便举某天的下班18:40点 为7.5个小时
-        const left_hour102 = ((totol_day * 10.2 - work_day * data.avgHours) / left_day).toFixed(2)// 奋斗者 对标10.2个小时
-        const left_time102 = new Date(left_time75.getTime() + (left_hour102 - 7.5) * 60 * 60 * 1000)// 奋斗者 对标10.2个小时
-        const left_hour9 = ((totol_day * 9 - work_day * data.avgHours) / left_day).toFixed(2)// 思考者 对标9个小时
-        const left_time9 = new Date(left_time75.getTime() + (left_hour9 - 7.5) * 60 * 60 * 1000)// 思考者 对标9个小时
         this.data = data
-        this.calData = {
-          left_time102,
-          left_time9,
-        }
-        console.log(this.calData)
       })
     },
     formatTime(time, format = "yyyy-MM-dd hh:mm:ss") {
@@ -170,11 +224,13 @@ export default {
 .home {
   padding: 20px;
   font-size: 14px;
-
-  .main {
+  .card{
     padding: 8px 16px;
     background-color: #fff;
     border-radius: 4px;
+  }
+
+  .main {
 
     .header {
       display: flex;
@@ -202,11 +258,20 @@ export default {
       font-weight: 700;
     }
 
-    .number {
-      font-weight: 700;
-      font-size: 24px;
-    }
+
   }
 
+  .holiday{
+
+  }
+}
+.row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.number {
+  font-weight: 700;
+  font-size: 24px;
 }
 </style>
