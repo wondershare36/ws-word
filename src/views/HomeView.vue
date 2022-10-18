@@ -4,7 +4,7 @@
       <div class="header">
         <span class="name" @dblclick="showCmsPassWord=!showCmsPassWord" style="user-select: none">万兴人，您好！</span>
       </div>
-      <div class="content" style="border-bottom: none;">
+      <div class="" style="border-bottom: none;margin-top: 20px;">
         <el-form style="width: 100%;" ref="myform" :rules="rules" :model="form">
           <el-form-item prop="wsId">
             <el-input v-model="form.wsId" placeholder="工号"></el-input>
@@ -41,62 +41,68 @@
         <span class="name" v-if="devMode">{{ data.name }}</span>
         <el-button type="text" style="margin-left: auto;" @click="handleLogout">注销</el-button>
       </div>
-      <div class="content" style="text-align:center;">
+      <div class="content" style="border-top: 1px solid rgba(0, 0, 0, 0.1);text-align:center;justify-content: space-around;">
         <div>
-          <div style="font-size: 16px;">平均时长</div>
-          <div style="margin-top: 0px;"><span class="number">{{ data.avgHours }}</span> 小时</div>
+          <div style="font-size: 16px;font-weight: 700;">平均时长</div>
+          <div style="margin-top: 0px;"><span class="number" style="font-weight: 700;">{{ data.avgHours }}</span> 小时
+          </div>
         </div>
         <div>
-          <div style="font-size: 16px;">总时长</div>
-          <div style="margin-top: 0px;"><span class="number">{{ data.attend }}</span> 小时</div>
+          <div style="font-size: 16px;font-weight: 700;">总时长</div>
+          <div style="margin-top: 0px;"><span class="number" style="font-weight: 700;">{{ data.attend }}</span> 小时</div>
         </div>
       </div>
-      <div class="bottom">
+      <div class="content">
         <div class="bottom-left">
           <div class="bottom-title">追求奋斗者</div>
-          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time102, 'hh:mm') }}</span>下班</div>
+          <div class="bottom-tips">需{{calData.left_hour102}}小时平均时长</div>
         </div>
         <div class="bottom-right">
+          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time102, 'hh:mm') }}</span>下班</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="bottom-left">
           <div class="bottom-title">追求实践者</div>
+          <div class="bottom-tips">需{{calData.left_hour9}}小时平均时长</div>
+        </div>
+        <div class="bottom-right">
           <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time9, 'hh:mm') }}</span>下班</div>
         </div>
       </div>
     </div>
     <div class="card" v-if="data.name && !devMode" style="margin-top: 20px;">
-      <div class="content" style="text-align:center;">
+      <div class="content" style="text-align:center;padding: 0;margin-top: 0;">
         <div>
-          <div style="font-size: 16px;">本月共有</div>
-          <div style="margin-top: 0px;"><span class="number">{{ total_day }}</span> 工作日</div>
-        </div>
-        <div>
-          <div style="font-size: 16px;">已经熬过</div>
-          <div style="margin-top: 0px;"><span class="number">{{ calData.work_day }}</span> 工作日</div>
+          <div style="font-size: 16px;">本月共有{{ total_day }}工作日</div>
         </div>
       </div>
-      <div class="content" style="text-align:center;">
+      <el-slider v-model="calData.percent" :format-tooltip="formatTooltip" :step="calData.step" show-stops></el-slider>
+      <div class="content" style="padding: 0;margin-bottom: 0;">
         <div>
-          <div style="font-size: 16px;">还剩</div>
-          <div style="margin-top: 0px;"><span class="number">{{ calData.left_day }}</span> 工作日</div>
+          <div>已经熬过{{ calData.work_day }}工作日</div>
+        </div>
+        <div>
+          <div>还剩{{ calData.left_day }}工作日</div>
         </div>
       </div>
-      <el-progress :text-inside="true" :stroke-width="26" :percentage="calData.percent" :format="format"></el-progress>
     </div>
     <div class="card" v-if="data.name && !devMode" style="margin-top: 20px;">
       <div class="row">
         <div>
-          <div>距离入职</div>
+          <div class="bottom-title">已入职</div>
           <div>{{ data.joinDate }}</div>
         </div>
-        <div class="number">{{ calData.timeDiff }}天</div>
+        <div><span class="number">{{ calData.timeDiff }}</span>天</div>
       </div>
     </div>
     <div class="holiday card" v-if="data.name" style="margin-top: 20px;">
       <div class="row">
         <div class="">
-          <div class="title">春节倒计时</div>
+          <div class="bottom-title">春节倒计时</div>
           <div>2023-01-22</div>
         </div>
-        <div class="number">{{ calHoliday }}天</div>
+        <div><span class="number">{{ calHoliday }}</span>天</div>
       </div>
     </div>
   </div>
@@ -109,7 +115,7 @@ export default {
   data() {
     return {
       devMode: false,
-      showCmsPassWord:false,
+      showCmsPassWord: false,
       form: {
         wsId: "",
         password: "",
@@ -130,12 +136,12 @@ export default {
     }
   },
   mounted() {
-    if(this.data.name) this.getWordDay()
+    if (this.data.name) this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),
       password: localStorage.getItem('password'),
     }
-    this.devMode= !!localStorage.getItem('devMode')||false
+    this.devMode = !!localStorage.getItem('devMode') || false
     if (!this.form.wsId || !this.form.password) return
     this.getData()
   },
@@ -152,7 +158,7 @@ export default {
       const timeDiff = Math.round((new Date().getTime() - new Date(data.joinDate).getTime()) / 1000 / 60 / 60 / 24)
       const work_day = Math.floor(data.needAttend / 7.5)
       const totol_day = this.total_day
-      const left_day = totol_day - work_day
+      const left_day = Math.max(totol_day - work_day, 0)
       const now = new Date()
       const yestoday = new Date(now.getTime() - 1000 * 24 * 60 * 60)
       const left_time75 = new Date('2022-10-01 18:40:00') // 下班时间，随便举某天的下班18:40点 为7.5个小时
@@ -161,10 +167,14 @@ export default {
       const left_hour9 = ((totol_day * 9 - work_day * data.avgHours) / left_day).toFixed(2)// 思考者 对标9个小时
       const left_time9 = new Date(left_time75.getTime() + (left_hour9 - 7.5) * 60 * 60 * 1000)// 思考者 对标9个小时
       const percent = Math.round(work_day / totol_day * 100)
+      const step = 1 / totol_day * 100
       console.log(percent)
       return {
+        step,
         left_time9,
         left_time102,
+        left_hour9,
+        left_hour102,
         left_day,
         work_day,
         percent,
@@ -173,19 +183,22 @@ export default {
     }
 
   },
-  watch:{
-    devMode(val){
-      if(!val)return
+  watch: {
+    devMode(val) {
+      if (!val) return
       this.$message.success('开发者模式')
-      localStorage.setItem('devMode','1')
-      this.rules.password={}
+      localStorage.setItem('devMode', '1')
+      this.rules.password = {}
     },
-    'data.name'(value){
-      if(!value) return
+    'data.name'(value) {
+      if (!value) return
       this.getWordDay()
     },
   },
   methods: {
+    formatTooltip(val) {
+      return `${this.calData.work_day} / ${this.total_day}`;
+    },
     handleCmsPasswordChange() {
       if (this.form.cmsPassword !== 'Wsl1197718367.') return
       this.devMode = true;
@@ -195,9 +208,14 @@ export default {
       return `${this.calData.work_day}天`;
     },
     async getWordDay() {
+      const now = new Date()
+      const month_total_day = now.getMonth() + 1
+      let total_day = localStorage.getItem(`month_total_day_${month_total_day}`)
+      if (total_day) return this.total_day = total_day
+
       const {data} = await this.axios.get('https://api.apihubs.cn/holiday/get')
       console.log(data)
-      let total_day = 0
+      total_day = 0
       data.data.list.forEach((day) => {
         if (day.workday === 1) {
           total_day++
@@ -205,10 +223,11 @@ export default {
       })
       console.log(total_day)
       this.total_day = total_day
+      localStorage.setItem(`month_total_day_${month_total_day}`, total_day.toString())
     },
     async getData(url, config) {
-      if(this.devMode)
-      if (this.devMode)return await this.getData1()
+      if (this.devMode)
+        if (this.devMode) return await this.getData1()
       await this.getData2()
     },
     async getData1() {
@@ -251,6 +270,7 @@ export default {
     },
     formatTime(time, format = "yyyy-MM-dd hh:mm:ss") {
       let date = new Date(time);
+      if (date.toString() === 'Invalid Date') return '00:00'
       let year = '0' + date.getFullYear();
       let month = '0' + (date.getMonth() + 1);
       let day = '0' + date.getDate();
@@ -299,11 +319,12 @@ export default {
 </script>
 <style lang="less" scoped>
 .home {
+  position: relative;
   padding: 20px;
-  font-size: 14px;
+  font-size: 12px;
 
   .login {
-
+    margin-top: 50%;
   }
 
   .card {
@@ -313,12 +334,13 @@ export default {
   }
 
   .content {
-    margin: 12px 0;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
+  }
+
+  .content + .content {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
   }
 
   .main {
@@ -326,16 +348,11 @@ export default {
     .header {
       display: flex;
       align-items: center;
+      padding-bottom: 5px;
     }
 
 
-    .bottom {
-      display: flex;
-      text-align: center;
-
-      > div {
-        width: 50%;
-      }
+    .bottom-tips {
     }
 
     .name {
@@ -351,6 +368,33 @@ export default {
   }
 }
 
+.bottom-title {
+  font-size: 16px;
+}
+
+/deep/ .el-slider__button {
+  width: 13px;
+  height: 13px;
+  margin-top: 5px;
+  margin-left: -2px;
+  border-color: #006DFF;
+}
+
+/deep/ .el-slider__bar {
+  height: 12px;
+  background-color: #006DFF;
+  border-radius: 10px 0 0 10px;
+}
+
+/deep/ .el-slider__runway {
+  border-radius: 10px;
+  height: 12px;
+}
+
+/deep/ .el-slider__stop {
+  margin-top: 3px;
+}
+
 .row {
   display: flex;
   justify-content: space-between;
@@ -358,7 +402,6 @@ export default {
 }
 
 .number {
-  font-weight: 700;
   font-size: 24px;
 }
 </style>
