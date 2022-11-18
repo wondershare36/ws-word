@@ -41,7 +41,8 @@
         <span class="name" v-if="devMode">{{ data.name }}</span>
         <el-button type="text" style="margin-left: auto;" @click="handleLogout">注销</el-button>
       </div>
-      <div class="content" style="border-top: 1px solid rgba(0, 0, 0, 0.1);text-align:center;justify-content: space-around;">
+      <div class="content"
+           style="border-top: 1px solid rgba(0, 0, 0, 0.1);text-align:center;justify-content: space-around;">
         <div>
           <div style="font-size: 16px;font-weight: 700;">平均时长</div>
           <div style="margin-top: 0px;"><span class="number" style="font-weight: 700;">{{ data.avgHours }}</span> 小时
@@ -49,13 +50,14 @@
         </div>
         <div>
           <div style="font-size: 16px;font-weight: 700;">总时长</div>
-          <div style="margin-top: 0px;"><span class="number" style="font-weight: 700;">{{ data.attend }}</span> 小时</div>
+          <div style="margin-top: 0px;"><span class="number" style="font-weight: 700;">{{ data.attend }}</span> 小时
+          </div>
         </div>
       </div>
       <div class="content">
         <div class="bottom-left">
           <div class="bottom-title">追求奋斗者</div>
-          <div class="bottom-tips">需{{calData.left_hour102}}小时平均时长</div>
+          <div class="bottom-tips">需{{ calData.left_hour102 }}小时平均时长</div>
         </div>
         <div class="bottom-right">
           <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time102, 'hh:mm') }}</span>下班</div>
@@ -64,7 +66,7 @@
       <div class="content">
         <div class="bottom-left">
           <div class="bottom-title">追求实践者</div>
-          <div class="bottom-tips">需{{calData.left_hour9}}小时平均时长</div>
+          <div class="bottom-tips">需{{ calData.left_hour9 }}小时平均时长</div>
         </div>
         <div class="bottom-right">
           <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time9, 'hh:mm') }}</span>下班</div>
@@ -136,7 +138,7 @@ export default {
     }
   },
   mounted() {
-    this.open()
+    // this.open()
     if (this.data.name) this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),
@@ -239,9 +241,11 @@ export default {
       localStorage.setItem(`month_total_day_${month_total_day}`, total_day.toString())
     },
     async getData(url, config) {
-      if (this.devMode)
+      this.getData2()
+      this.getData1()
+    /*  if (this.devMode)
         if (this.devMode) return await this.getData1()
-      await this.getData2()
+      await this.getData2()*/
     },
     async getData1() {
       const response = await this.axios.get('https://res.wondershare.cn/analytics/attend', {
@@ -250,22 +254,23 @@ export default {
           authorization: "Basic MjExMTE1MTM6YTI4ZTdhZTM3NDk2NTFhOGQ1ODQyN2E3MmI2ODIwNTQ="
         }
       })
-      const {data: data2} = await this.axios.get(`https://gw.300624.cn/ihr/v1.0/tmp-employee-info/detail/${this.form.wsId}`, {
-        params: this.form,
-        headers: {
-          authorization: "Basic MjExMTE1MTM6YTI4ZTdhZTM3NDk2NTFhOGQ1ODQyN2E3MmI2ODIwNTQ="
-        }
-      })
-      console.log(JSON.parse(data2.data.basicInfo))
-      console.log(response)
-      if (response.data.data.status >= 200) {
-        localStorage.clear()
-        return this.$message.error(response.data.msg)
-      }
-      localStorage.setItem('wsId', this.form.wsId)
-      localStorage.setItem('password', this.form.password)
+      // const {data: data2} = await this.axios.get(`https://gw.300624.cn/ihr/v1.0/tmp-employee-info/detail/${this.form.wsId}`, {
+      //   params: this.form,
+      //   headers: {
+      //     authorization: "Basic MjExMTE1MTM6YTI4ZTdhZTM3NDk2NTFhOGQ1ODQyN2E3MmI2ODIwNTQ="
+      //   }
+      // })
+      // console.log(JSON.parse(data2.data.basicInfo))
+      // console.log(response)
+      // if (response.data.data.status >= 200) {
+      //   localStorage.clear()
+      //   return this.$message.error(response.data.msg)
+      // }
+      // localStorage.setItem('wsId', this.form.wsId)
+      // localStorage.setItem('password', this.form.password)
       this.data = {
-        name: JSON.parse(data2.data.basicInfo).name,
+        // name: JSON.parse(data2.data.basicInfo).name,
+        ...this.data,
         ...response.data.data
       }
     },
