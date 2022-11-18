@@ -241,7 +241,7 @@ export default {
       localStorage.setItem(`month_total_day_${month_total_day}`, total_day.toString())
     },
     async getData(url, config) {
-      this.getData2()
+      await this.getData2()
       this.getData1()
     /*  if (this.devMode)
         if (this.devMode) return await this.getData1()
