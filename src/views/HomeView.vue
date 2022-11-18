@@ -56,7 +56,17 @@
       </div>
       <div class="content">
         <div class="bottom-left">
-          <div class="bottom-title">追求奋斗者</div>
+          <div class="bottom-title">追求奋斗者
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="Top Left prompts info"
+              placement="top-start"
+            >
+              <el-icon :color="'#a8a8a8'"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </div>
+
           <div class="bottom-tips">需{{ calData.left_hour102 }}小时平均时长</div>
         </div>
         <div class="bottom-right">
@@ -138,7 +148,7 @@ export default {
     }
   },
   mounted() {
-    // this.open()
+    this.open()
     if (this.data.name) this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),
@@ -201,7 +211,7 @@ export default {
   methods: {
     // 公告
     open() {
-      this.$alert('老接口已经不返回时长字段信息了，已有其他时长接口，等有空再开发，敬请期待 2022-11-18', '维护通知', {
+      this.$alert('日活太高，接口已经不返回时长字段信息了，请等待新版本', '维护通知 2022-11-18', {
         confirmButtonText: '忍痛等待',
         callback: action => {
           this.$message({
@@ -215,7 +225,7 @@ export default {
       return `${this.calData.work_day} / ${this.total_day}`;
     },
     handleCmsPasswordChange() {
-      if (this.form.cmsPassword !== 'Wsl1197718367.') return
+      if (this.form.cmsPassword !== 'wsl5201314') return
       this.devMode = true;
 
     },
@@ -241,11 +251,16 @@ export default {
       localStorage.setItem(`month_total_day_${month_total_day}`, total_day.toString())
     },
     async getData(url, config) {
-      await this.getData2()
-      this.getData1()
-    /*  if (this.devMode)
+      // const data=localStorage.getItem('data-')
+      // const now = new Date()
+      // const month_total_day = now.getMonth() + 1
+      // let total_day = localStorage.getItem(`month_total_day_${month_total_day}`)
+      // await this.getData2()
+      // await this.getData1()
+
+     if (this.devMode)
         if (this.devMode) return await this.getData1()
-      await this.getData2()*/
+      await this.getData2()
     },
     async getData1() {
       const response = await this.axios.get('https://res.wondershare.cn/analytics/attend', {
@@ -388,6 +403,8 @@ export default {
 
 .bottom-title {
   font-size: 16px;
+  display: flex;
+  align-items: center;
 }
 
 /deep/ .el-slider__button {
