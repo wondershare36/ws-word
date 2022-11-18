@@ -136,6 +136,7 @@ export default {
     }
   },
   mounted() {
+    this.open()
     if (this.data.name) this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),
@@ -196,6 +197,18 @@ export default {
     },
   },
   methods: {
+    // 公告
+    open() {
+      this.$alert('老接口已经不返回时长字段信息了，已有其他时长接口，等有空再开发，敬请期待 2022-11-18', '维护通知', {
+        confirmButtonText: '忍痛等待',
+        callback: action => {
+          this.$message({
+            type: 'info',
+            message: `爱你哟`
+          });
+        }
+      });
+    },
     formatTooltip(val) {
       return `${this.calData.work_day} / ${this.total_day}`;
     },
