@@ -46,7 +46,7 @@
         <span class="name" @dblclick="showCmsPassWord=!showCmsPassWord" v-if="!devMode&&data.name">{{
             data.name[0]
           }}同学，您好！</span>
-        <span class="name" v-if="devMode">{{ data.name }}</span>
+        <span class="name" v-if="devMode" @dblclick="showCmsPassWord=false;devMode=false">{{ data.name }}</span>
         <el-button type="text" style="margin-left: auto;" @click="handleLogout">注销</el-button>
       </div>
       <div class="content"
@@ -224,7 +224,6 @@ export default {
       const left_time9 = new Date(left_time75.getTime() + (left_hour9 - 7.5) * 60 * 60 * 1000)// 实践者 对标9个小时
       const percent = Math.round(work_day / totol_day * 100)
       const step = 1 / totol_day * 100
-      console.log(percent)
       return {
         step,
         left_time9,
@@ -294,9 +293,7 @@ export default {
           total_day++
         }
       })
-      console.log(total_day)
       this.total_day = total_day
-      localStorage.setItem(`month_total_day_${month_total_day}`, total_day.toString())
     },
     async getData(wsId) {
       const now = new Date()
@@ -313,7 +310,9 @@ export default {
           await this.getData2()
         }
       } else {
+        console.log('缓存',wsId)
         this.data = data
+        if(wsId)console.log(localStorage.getItem('basicInfo_'+wsId))
       }
     },
     // 需要账号和密码，只能查自己的，有姓名
@@ -349,7 +348,6 @@ export default {
     // 查个人信息，需要账号和密码，wsId可以查别人的
     async getData3(wsId) {
       let basicInfo = JSON.parse(localStorage.getItem('basicInfo_' + this.wsId || this.form.wsId));
-      console.log(basicInfo)
       if (!basicInfo) {
         const {data: data2} = await this.axios.get(`https://gw.300624.cn/ihr/v1.0/tmp-employee-info/detail/${wsId || this.form.wsId}`, {
           headers: {
@@ -357,6 +355,7 @@ export default {
           }
         })
         basicInfo = JSON.parse(data2.data.basicInfo)
+        console.log('查个人信息',basicInfo)
         localStorage.setItem('basicInfo_' + basicInfo.badge, JSON.stringify(basicInfo))
       }
       this.data.name = basicInfo.name
