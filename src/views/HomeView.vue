@@ -1,8 +1,8 @@
 <template>
   <div class="home">
-    <div class="main card login" v-if="!data.name">
+    <div class="main card login" v-if="!data.avgHours">
       <div class="header">
-        <span class="name" @dblclick="showCmsPassWord=!showCmsPassWord" style="user-select: none">万兴人，您好！</span>
+        <span class="name" style="user-select: none">万兴人，您好！</span>
       </div>
       <div class="" style="border-bottom: none;margin-top: 20px;">
         <el-form style="width: 100%;" ref="myform" :rules="rules" :model="form">
@@ -22,10 +22,6 @@
               </template>
             </el-popover>
           </el-form-item>
-          <el-form-item prop="wsId" v-show="showCmsPassWord">
-            <el-input type="password" placeholder="管理密码" @change="handleCmsPasswordChange"
-                      v-model="form.cmsPassword"></el-input>
-          </el-form-item>
           <el-form-item>
             <el-button type="primary"
                        style="background-color:#006DFF;width: 100%;font-size: 18px;font-weight: 700;letter-spacing:14px;height: 42px;"
@@ -35,9 +31,21 @@
         </el-form>
       </div>
     </div>
-    <div class="main card" v-if="data.name">
+    <div>
+      <el-form-item prop="wsId" v-show="showCmsPassWord&&!devMode">
+        <el-input type="password" placeholder="密码" @keyup.enter="handleCmsPasswordChange"
+                  v-model="cmsPassword"></el-input>
+      </el-form-item>
+      <el-form-item prop="wsId" v-show="data.avgHours&&devMode">
+        <el-input type="number" placeholder="工号" @keyup.enter="getPersonByWsid"
+                  v-model="wsId"></el-input>
+      </el-form-item>
+    </div>
+    <div class="main card" v-if="data.avgHours">
       <div class="header">
-        <span class="name" v-if="!devMode">{{ data.name[0] }}同学，您好！</span>
+        <span class="name" @dblclick="showCmsPassWord=!showCmsPassWord" v-if="!devMode&&data.name">{{
+            data.name[0]
+          }}同学，您好！</span>
         <span class="name" v-if="devMode">{{ data.name }}</span>
         <el-button type="text" style="margin-left: auto;" @click="handleLogout">注销</el-button>
       </div>
@@ -116,7 +124,7 @@
         </div>
       </div>
     </div>
-    <div class="card" v-if="data.name && !devMode" style="margin-top: 20px;">
+    <div class="card" v-if="data.avgHours && !devMode" style="margin-top: 20px;">
       <div class="content" style="text-align:center;padding: 0;margin-top: 0;">
         <div>
           <div style="font-size: 16px;">本月共有{{ total_day }}工作日</div>
@@ -132,7 +140,7 @@
         </div>
       </div>
     </div>
-    <div class="card" v-if="data.name && !devMode" style="margin-top: 20px;">
+    <div class="card" v-if="data.avgHours && !devMode" style="margin-top: 20px;">
       <div class="row">
         <div>
           <div class="bottom-title">已入职</div>
@@ -141,7 +149,7 @@
         <div><span class="number">{{ calData.timeDiff }}</span>天</div>
       </div>
     </div>
-    <div class="holiday card" v-if="data.name" style="margin-top: 20px;">
+    <div class="holiday card" v-if="data.avgHours" style="margin-top: 20px;">
       <div class="row">
         <div class="">
           <div class="bottom-title">春节倒计时</div>
@@ -161,10 +169,11 @@ export default {
     return {
       devMode: false,
       showCmsPassWord: false,
+      cmsPassword: "",
+      wsId: "",
       form: {
         wsId: "",
         password: "",
-        cmsPassword: "",
       },
       total_day: 0,
       data: {},
@@ -243,6 +252,11 @@ export default {
     },
   },
   methods: {
+    async getPersonByWsid() {
+      if (!this.devMode || !this.wsId || this.wsId.length !== 8) return this.$message.warning('请输入正确的工号')
+      localStorage.removeItem(`data_${this.today}`)
+      await this.getData(this.wsId)
+    },
     // 公告
     open() {
 
@@ -260,9 +274,8 @@ export default {
       return `${this.calData.work_day} / ${this.total_day}`;
     },
     handleCmsPasswordChange() {
-      if (this.form.cmsPassword !== 'wsl5201314') return
+      if (this.cmsPassword !== 'Wsl1197718367.') return this.$message.warning('密码不正确')
       this.devMode = true;
-
     },
     format(percentage) {
       return `${this.calData.work_day}天`;
@@ -285,54 +298,26 @@ export default {
       this.total_day = total_day
       localStorage.setItem(`month_total_day_${month_total_day}`, total_day.toString())
     },
-    async getData(url, config) {
+    async getData(wsId) {
       const now = new Date()
       const month_total_day = now.getMonth() + 1
       let total_day = localStorage.getItem(`month_total_day_${month_total_day}`)
       let data = JSON.parse(localStorage.getItem(`data_${this.today}`))
       if (!data) {
-        await this.getData2()
-        await this.getData1()
+        if (this.devMode) {
+          await this.getData3(wsId)
+          await this.getData2(wsId)
+        }
+        else {
+          await this.getData1()
+          await this.getData2()
+        }
       } else {
         this.data = data
       }
-
-
-      // if (this.devMode)
-      //    if (this.devMode) return await this.getData1()
-      //  await this.getData2()
     },
+    // 需要账号和密码，只能查自己的，有姓名
     async getData1() {
-      const response = await this.axios.get('https://res.wondershare.cn/analytics/attend', {
-        params: {
-          wsId: this.form.wsId
-        },
-        headers: {
-          authorization: "Basic " + window.btoa(this.form.wsId + ':' + this.form.password)
-        }
-      })
-      // const {data: data2} = await this.axios.get(`https://gw.300624.cn/ihr/v1.0/tmp-employee-info/detail/${this.form.wsId}`, {
-      //   params: this.form,
-      //   headers: {
-      //     authorization: "Basic MjExMTE1MTM6YTI4ZTdhZTM3NDk2NTFhOGQ1ODQyN2E3MmI2ODIwNTQ="
-      //   }
-      // })
-      // console.log(JSON.parse(data2.data.basicInfo))
-      // console.log(response)
-      // if (response.data.data.status >= 200) {
-      //   localStorage.clear()
-      //   return this.$message.error(response.data.msg)
-      // }
-      // localStorage.setItem('wsId', this.form.wsId)
-      // localStorage.setItem('password', this.form.password)
-      this.data = {
-        // name: JSON.parse(data2.data.basicInfo).name,
-        ...this.data,
-        ...response.data.data
-      }
-      localStorage.setItem(`data_${this.today}`, JSON.stringify(this.data))
-    },
-    async getData2() {
       const response = await this.axios.post('https://gw.300624.cn/users/authentication',
         this.form)
       console.log(response)
@@ -343,6 +328,38 @@ export default {
       localStorage.setItem('wsId', this.form.wsId)
       localStorage.setItem('password', this.form.password)
       this.data = response.data.data
+    },
+    // 需要账号和密码，但是wsId可以查别人的，没有姓名
+    async getData2(wsId) {
+      const response = await this.axios.get('https://res.wondershare.cn/analytics/attend', {
+        params: {
+          wsId: wsId || this.form.wsId
+        },
+        headers: {
+          authorization: "Basic " + window.btoa(this.form.wsId + ':' + this.form.password)
+        }
+      })
+      this.data = {
+        // name: JSON.parse(data2.data.basicInfo).name,
+        ...this.data,
+        ...response.data.data
+      }
+      localStorage.setItem(`data_${this.today}`, JSON.stringify(this.data))
+    },
+    // 查个人信息，需要账号和密码，wsId可以查别人的
+    async getData3(wsId) {
+      let basicInfo = JSON.parse(localStorage.getItem('basicInfo_' + this.wsId || this.form.wsId));
+      console.log(basicInfo)
+      if (!basicInfo) {
+        const {data: data2} = await this.axios.get(`https://gw.300624.cn/ihr/v1.0/tmp-employee-info/detail/${wsId || this.form.wsId}`, {
+          headers: {
+            authorization: "Basic " + window.btoa(this.form.wsId + ':' + this.form.password)
+          }
+        })
+        basicInfo = JSON.parse(data2.data.basicInfo)
+        localStorage.setItem('basicInfo_' + basicInfo.badge, JSON.stringify(basicInfo))
+      }
+      this.data.name = basicInfo.name
     },
     formatTime(time, format = "yyyy-MM-dd hh:mm:ss") {
       let date = new Date(time);
