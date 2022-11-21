@@ -56,18 +56,30 @@
       </div>
       <div class="content">
         <div class="bottom-left">
-          <div class="bottom-title">追求奋斗者
+          <div class="bottom-title">
+            追求奋斗者
             <el-tooltip
               class="box-item"
               effect="dark"
-              content="Top Left prompts info"
+              raw-content
               placement="top-start"
             >
-              <el-icon :color="'#a8a8a8'"><QuestionFilled /></el-icon>
+              <template #content>
+                <div style="width:200px;">奋斗者需要 10.2 小时平均时长，<br/>
+                  按 9:00 上班算，需要在剩下工作日保持每日时长
+                  <strong class="blue">{{ calData.left_hour102 }}</strong> 小时，<br/>
+                  按 18:40 下班算，需要在剩下工作日保持每日熬到
+                  <strong class="blue">{{ formatTime(calData.left_time102, "hh:mm") }}</strong> 下班
+                </div>
+              </template>
+              <el-icon :color="'#a8a8a8'" :size="15">
+                <QuestionFilled/>
+              </el-icon>
             </el-tooltip>
           </div>
-
-          <div class="bottom-tips">需{{ calData.left_hour102 }}小时平均时长</div>
+          <div class="bottom-tips">
+            <span>需保持每日时长 <strong style="font-weight: 700;">{{ calData.left_hour102 }}</strong> 小时</span>
+          </div>
         </div>
         <div class="bottom-right">
           <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time102, 'hh:mm') }}</span>下班</div>
@@ -75,8 +87,29 @@
       </div>
       <div class="content">
         <div class="bottom-left">
-          <div class="bottom-title">追求实践者</div>
-          <div class="bottom-tips">需{{ calData.left_hour9 }}小时平均时长</div>
+          <div class="bottom-title">
+            追求实践者
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              placement="top-start"
+            >
+              <template #content>
+                <div style="width:200px;">实践者需要 9 小时平均时长，<br/>
+                  按 9:00 上班算，需要在剩下工作日保持每日时长
+                  <strong class="blue">{{ calData.left_hour9 }}</strong> 小时，<br/>
+                  按 18:40 下班算，需要在剩下工作日保持每日熬到
+                  <strong class="blue">{{ formatTime(calData.left_time9, 'hh:mm') }}</strong> 下班
+                </div>
+              </template>
+              <el-icon :color="'#a8a8a8'" :size="15">
+                <QuestionFilled/>
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div class="bottom-tips">
+            需保持每日时长 <strong style="font-weight: 700;">{{ calData.left_hour9 }}</strong> 小时
+          </div>
         </div>
         <div class="bottom-right">
           <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time9, 'hh:mm') }}</span>下班</div>
@@ -135,6 +168,7 @@ export default {
       },
       total_day: 0,
       data: {},
+      today: this.formatTime(new Date('2022-11-22'), 'yyyy-MM-dd'),
       rules: {
         wsId: [
           {required: true, message: '请输入工号', trigger: 'blur'},
@@ -148,7 +182,7 @@ export default {
     }
   },
   mounted() {
-    this.open()
+    // this.open()
     if (this.data.name) this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),
@@ -177,8 +211,8 @@ export default {
       const left_time75 = new Date('2022-10-01 18:40:00') // 下班时间，随便举某天的下班18:40点 为7.5个小时
       const left_hour102 = ((totol_day * 10.2 - work_day * data.avgHours) / left_day).toFixed(2)// 奋斗者 对标10.2个小时
       const left_time102 = new Date(left_time75.getTime() + (left_hour102 - 7.5) * 60 * 60 * 1000)// 奋斗者 对标10.2个小时
-      const left_hour9 = ((totol_day * 9 - work_day * data.avgHours) / left_day).toFixed(2)// 思考者 对标9个小时
-      const left_time9 = new Date(left_time75.getTime() + (left_hour9 - 7.5) * 60 * 60 * 1000)// 思考者 对标9个小时
+      const left_hour9 = ((totol_day * 9 - work_day * data.avgHours) / left_day).toFixed(2)// 实践者 对标9个小时
+      const left_time9 = new Date(left_time75.getTime() + (left_hour9 - 7.5) * 60 * 60 * 1000)// 实践者 对标9个小时
       const percent = Math.round(work_day / totol_day * 100)
       const step = 1 / totol_day * 100
       console.log(percent)
@@ -211,6 +245,7 @@ export default {
   methods: {
     // 公告
     open() {
+
       this.$alert('日活太高，接口已经不返回时长字段信息了，请等待新版本', '维护通知 2022-11-18', {
         confirmButtonText: '忍痛等待',
         callback: action => {
@@ -251,22 +286,29 @@ export default {
       localStorage.setItem(`month_total_day_${month_total_day}`, total_day.toString())
     },
     async getData(url, config) {
-      // const data=localStorage.getItem('data-')
-      // const now = new Date()
-      // const month_total_day = now.getMonth() + 1
-      // let total_day = localStorage.getItem(`month_total_day_${month_total_day}`)
-      // await this.getData2()
-      // await this.getData1()
+      const now = new Date()
+      const month_total_day = now.getMonth() + 1
+      let total_day = localStorage.getItem(`month_total_day_${month_total_day}`)
+      let data = JSON.parse(localStorage.getItem(`data_${this.today}`))
+      if (!data) {
+        await this.getData2()
+        await this.getData1()
+      } else {
+        this.data = data
+      }
 
-     if (this.devMode)
-        if (this.devMode) return await this.getData1()
-      await this.getData2()
+
+      // if (this.devMode)
+      //    if (this.devMode) return await this.getData1()
+      //  await this.getData2()
     },
     async getData1() {
       const response = await this.axios.get('https://res.wondershare.cn/analytics/attend', {
-        params: this.form,
+        params: {
+          wsId: this.form.wsId
+        },
         headers: {
-          authorization: "Basic MjExMTE1MTM6YTI4ZTdhZTM3NDk2NTFhOGQ1ODQyN2E3MmI2ODIwNTQ="
+          authorization: "Basic " + window.btoa(this.form.wsId + ':' + this.form.password)
         }
       })
       // const {data: data2} = await this.axios.get(`https://gw.300624.cn/ihr/v1.0/tmp-employee-info/detail/${this.form.wsId}`, {
@@ -288,6 +330,7 @@ export default {
         ...this.data,
         ...response.data.data
       }
+      localStorage.setItem(`data_${this.today}`, JSON.stringify(this.data))
     },
     async getData2() {
       const response = await this.axios.post('https://gw.300624.cn/users/authentication',
@@ -401,8 +444,17 @@ export default {
   }
 }
 
+.blue {
+  color: #006dff;
+  font-weight: 700;
+}
+
 .bottom-title {
   font-size: 16px;
+
+}
+
+.bottom-tips {
   display: flex;
   align-items: center;
 }
