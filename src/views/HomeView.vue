@@ -294,6 +294,7 @@ export default {
         }
       })
       this.total_day = total_day
+      localStorage.setItem(`month_total_day_${month_total_day}`, total_day.toString())
     },
     async getData(wsId) {
       const now = new Date()
