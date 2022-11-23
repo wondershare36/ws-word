@@ -4,23 +4,13 @@
       <div class="header">
         <span class="name" style="user-select: none">万兴人，您好！</span>
       </div>
-      <div class="" style="border-bottom: none;margin-top: 20px;">
+      <div class="" style="border-bottom: none;margin-top: 10px;">
         <el-form style="width: 100%;" ref="myform" :rules="rules" :model="form">
           <el-form-item prop="wsId">
             <el-input v-model="form.wsId" placeholder="工号"></el-input>
           </el-form-item>
-          <el-form-item v-show="!showCmsPassWord" prop="password">
-            <el-popover
-              placement="top-start"
-              title="加密密码"
-              :width="200"
-              trigger="hover"
-              content="请在员工之家抓包获取算法加密过的32位字符"
-            >
-              <template #reference>
-                <el-input type="password" placeholder="密码" v-model="form.password"></el-input>
-              </template>
-            </el-popover>
+          <el-form-item v-show="!showCmsPassWord" prop="passwordStr">
+            <el-input type="password" placeholder="密码" v-model="form.passwordStr"></el-input>
           </el-form-item>
           <el-form-item>
             <el-button type="primary"
@@ -124,10 +114,25 @@
         </div>
       </div>
     </div>
-    <div class="card" v-if="data.avgHours && !devMode" style="margin-top: 20px;">
+    <div class="card" v-if="data.avgHours && !devMode" style="margin-top: 10px;">
       <div class="content" style="text-align:center;padding: 0;margin-top: 0;">
         <div>
-          <div style="font-size: 16px;">本月共有{{ total_day }}工作日</div>
+          <div style="font-size: 16px;">
+            本月共有 {{ total_day }}
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              raw-content
+              placement="top-start"
+            >
+              <template #content>
+                <div style="">
+                  法定工作日
+                </div>
+              </template>
+              工作日
+            </el-tooltip>
+          </div>
         </div>
       </div>
       <el-slider v-model="calData.percent" :format-tooltip="formatTooltip" :step="calData.step" show-stops></el-slider>
@@ -140,7 +145,7 @@
         </div>
       </div>
     </div>
-    <div class="card" v-if="data.avgHours && !devMode" style="margin-top: 20px;">
+    <div class="card" v-if="data.avgHours && !devMode" style="margin-top: 10px;">
       <div class="row">
         <div>
           <div class="bottom-title">已入职</div>
@@ -149,7 +154,7 @@
         <div><span class="number">{{ calData.timeDiff }}</span>天</div>
       </div>
     </div>
-    <div class="holiday card" v-if="data.avgHours" style="margin-top: 20px;">
+    <div class="holiday card" v-if="false&&data.avgHours" style="margin-top: 10px;">
       <div class="row">
         <div class="">
           <div class="bottom-title">春节倒计时</div>
@@ -158,40 +163,159 @@
         <div><span class="number">{{ calHoliday }}</span>天</div>
       </div>
     </div>
+    <div class="card" v-if="data.avgHours" style="margin-top: 10px;">
+      <div class="row">
+        <div class="">
+          <div class="bottom-title">时长折线图</div>
+        </div>
+<!--        <div><span class="number">{{ option.series[0].data.length }}</span>天</div>-->
+      </div>
+      <v-chart class="chart" :option="option"/>
+    </div>
   </div>
 </template>
 
 <script>
+import Md5 from 'crypto-js/md5';
+import {use} from "echarts/core";
+import {CanvasRenderer} from "echarts/renderers";
+import {LineChart} from "echarts/charts";
+import {
+  TooltipComponent,
+  MarkLineComponent,
+  VisualMapComponent
+} from "echarts/components";
+import VChart, {THEME_KEY} from "vue-echarts";
+import {ref, defineComponent} from "vue";
+
+use([
+  CanvasRenderer,
+  VisualMapComponent,
+  TooltipComponent,
+  MarkLineComponent,
+  LineChart,
+]);
+
+function formatData(arr) {    //自己构造一个用来映射data到均匀数轴上的方法
+  const step = 2
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] >= 6 && arr[i] < 7.5) {
+      let percent1 = (arr[i] - 6) / 1.5;
+      arr[i] = percent1 * step + 6;
+    } else if (arr[i] >= 7.5 && arr[i] < 9) {
+      let percent2 = (arr[i] - 7.5) / 1.5;
+      console.log(arr[i], percent2)
+      arr[i] = percent2 * step + 7.5;
+    } else if (arr[i] >= 9 && arr[i] < 10.2) {
+      let percent2 = (arr[i] - 9) / 1.2;
+      arr[i] = percent2 * step + 7.5;
+    } else if (arr[i] >= 10.2) {
+      let percent2 = (arr[i] - 10.2) / 1.2;
+      arr[i] = percent2 * step + 12;
+    }
+    arr[i] = Number(arr[i]).toFixed(1)
+  }
+  return arr;
+}
 
 export default {
   name: 'HomeView',
+  components: {
+    VChart
+  },
   data() {
     return {
+
+      option: {
+        xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: ['22', '23', '24', '25', '26', '27', '28']
+        },
+        yAxis: {
+          min: 6,// 起始
+          splitNumber: 4,//坐标轴的分割段数，
+          step: 2,
+          type: 'value',
+          axisLabel: {
+            align: 'center',
+            formatter: function (value) {
+              let item = '';
+              // 利用formatter将y轴上本来为6 8,10,12的点强制改为6 7.5 9 10.2
+              if (value == 6) {
+                item = ''
+              } else if (value === 8) {
+                item = '思考者'
+              } else if (value === 10) {
+                item = '实践者'
+              } else if (value === 12) {
+                item = '奋斗者'
+              }
+              return item
+            }
+          }
+        },
+        series: [
+          {
+            data: formatData([7.5, 10.2, 8.2, 7.8, 10.9, 11, 7.6]),
+            step: 'middle',
+            type: 'line',
+            areaStyle: {},
+
+          }
+        ],
+        tooltip: {
+          trigger: 'axis'
+        },
+        visualMap: {
+          show: false,
+          pieces: [
+            {
+              gt: 6,
+              lte: 8,
+              color: '#93CE07'
+            },
+            {
+              gt: 8,
+              lte: 10,
+              color: '#FBDB0F'
+            },
+            {
+              gt: 10,
+              lte: 12,
+              color: '#FC7D02'
+            },
+          ],
+          outOfRange: {
+            color: '#999'
+          }
+        },
+      },
       devMode: false,
       showCmsPassWord: false,
       cmsPassword: "",
       wsId: "",
       form: {
         wsId: "",
+        passwordStr: '',
         password: "",
       },
       total_day: 0,
       data: {},
-      today: this.formatTime(new Date('2022-11-22'), 'yyyy-MM-dd'),
+      today: this.formatTime(new Date(), 'yyyy-MM-dd'),
       rules: {
         wsId: [
           {required: true, message: '请输入工号', trigger: 'blur'},
           {min: 8, max: 8, message: '长度为 8 位字符', trigger: 'blur'}
         ],
-        password: [
+        passwordStr: [
           {required: true, message: '请输入密码', trigger: 'blur'},
-          {min: 32, max: 32, message: '长度为 32 位字符', trigger: 'blur'}
         ],
       }
     }
   },
   mounted() {
-    // this.open()
+    this.open()
     if (this.data.name) this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),
@@ -251,6 +375,27 @@ export default {
     },
   },
   methods: {
+    // 获取最近7天的时长
+    get7DaysData() {
+      const _this=this
+      const days = [dateBefore(6), dateBefore(5), dateBefore(4), dateBefore(3), dateBefore(2), dateBefore(1), dateBefore(0)]
+      const datas=[]
+      for (let i = 0; i < days.length; i++) {
+        const dataItem=JSON.parse(localStorage.getItem('data_' + days[i]))
+        console.log(dataItem)
+        const avgHours=dataItem?dataItem.avgHours:0
+        datas.push(avgHours)
+      }
+      console.log(days)
+      console.log(datas)
+      this.option.series[0].data=formatData(datas)
+      this.option.xAxis.data=days.map(item=>this.formatTime(new Date(item),'dd'))
+      function dateBefore(day = 0) {
+        const now = new Date()
+        const oneDay = 1000 * 60 * 60 * 24
+        return _this.formatTime(new Date(now.getTime() - oneDay * day), 'yyyy-MM-dd')
+      }
+    },
     async getPersonByWsid() {
       if (!this.devMode || !this.wsId || this.wsId.length !== 8) return this.$message.warning('请输入正确的工号')
       localStorage.removeItem(`data_${this.today}`)
@@ -258,14 +403,14 @@ export default {
     },
     // 公告
     open() {
-
-      this.$alert('日活太高，接口已经不返回时长字段信息了，请等待新版本', '维护通知 2022-11-18', {
-        confirmButtonText: '忍痛等待',
+      if (localStorage.getItem('isCheck') === '1') return
+      this.$alert(`<p>1. 可以使用员工之家密码直接登录，不需要再抓包获取32位加密密码</p>
+        <p>2. 缓存每天时长记录，当日只会发送一次请求，防止日活太高</p>
+        <p>3. 根据缓存的时长记录生成最近7日折线图</p>`, '更新 2022-11-23', {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
         callback: action => {
-          this.$message({
-            type: 'info',
-            message: `爱你哟`
-          });
+          localStorage.setItem('isCheck', '1')
         }
       });
     },
@@ -305,21 +450,23 @@ export default {
         if (this.devMode) {
           await this.getData3(wsId)
           await this.getData2(wsId)
-        }
-        else {
+        } else {
           await this.getData1()
           await this.getData2()
         }
       } else {
-        console.log('缓存',wsId)
+        console.log('缓存', wsId)
         this.data = data
-        if(wsId)console.log(localStorage.getItem('basicInfo_'+wsId))
+        if (wsId) console.log(localStorage.getItem('basicInfo_' + wsId))
       }
+      this.get7DaysData()
     },
     // 需要账号和密码，只能查自己的，有姓名
     async getData1() {
-      const response = await this.axios.post('https://gw.300624.cn/users/authentication',
-        this.form)
+      const response = await this.axios.post('https://gw.300624.cn/users/authentication', {
+        wsId: this.form.wsId,
+        password: this.form.password,
+      })
       console.log(response)
       if (response.data.status > 200) {
         localStorage.clear()
@@ -356,7 +503,7 @@ export default {
           }
         })
         basicInfo = JSON.parse(data2.data.basicInfo)
-        console.log('查个人信息',basicInfo)
+        console.log('查个人信息', basicInfo)
         localStorage.setItem('basicInfo_' + basicInfo.badge, JSON.stringify(basicInfo))
       }
       this.data.name = basicInfo.name
@@ -393,6 +540,7 @@ export default {
     handleLogin() {
       this.$refs.myform.validate((valid) => {
         if (valid) {
+          this.form.password = Md5(this.form.passwordStr).toString()
           this.getData()
         } else {
           return false;
@@ -411,6 +559,12 @@ export default {
 }
 </script>
 <style lang="less" scoped>
+.chart {
+  margin-top: -50px;
+  margin-bottom: -40px;
+  height: 240px;
+}
+
 .home {
   position: relative;
   padding: 20px;
