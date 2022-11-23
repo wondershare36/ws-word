@@ -166,7 +166,7 @@
     <div class="card" v-if="data.avgHours" style="margin-top: 10px;">
       <div class="row">
         <div class="">
-          <div class="bottom-title">时长折线图</div>
+          <div class="bottom-title">平均时长折线图</div>
         </div>
 <!--        <div><span class="number">{{ option.series[0].data.length }}</span>天</div>-->
       </div>
@@ -406,7 +406,7 @@ export default {
       if (localStorage.getItem('isCheck') === '1') return
       this.$alert(`<p>1. 可以使用员工之家密码直接登录，不需要再抓包获取32位加密密码</p>
         <p>2. 缓存每天时长记录，当日只会发送一次请求，防止日活太高</p>
-        <p>3. 根据缓存的时长记录生成最近7日折线图</p>`, '更新 2022-11-23', {
+        <p>3. 根据缓存的时长记录生成最近7日平均时长折线图</p>`, '更新 2022-11-23', {
         dangerouslyUseHTMLString: true,
         confirmButtonText: '确定',
         callback: action => {
