@@ -168,7 +168,7 @@
         <div class="">
           <div class="bottom-title">平均时长折线图</div>
         </div>
-<!--        <div><span class="number">{{ option.series[0].data.length }}</span>天</div>-->
+        <!--        <div><span class="number">{{ option.series[0].data.length }}</span>天</div>-->
       </div>
       <v-chart class="chart" :option="option"/>
     </div>
@@ -208,12 +208,12 @@ function formatData(arr) {    //自己构造一个用来映射data到均匀数�
       arr[i] = percent2 * step + 7.5;
     } else if (arr[i] >= 9 && arr[i] < 10.2) {
       let percent2 = (arr[i] - 9) / 1.2;
-      arr[i] = percent2 * step + 7.5;
+      arr[i] = percent2 * step + 10;
     } else if (arr[i] >= 10.2) {
-      let percent2 = (arr[i] - 10.2) / 1.2;
+      let percent2 = (arr[i] - 10.2) / 2;
       arr[i] = percent2 * step + 12;
     }
-    arr[i] = Number(arr[i]).toFixed(1)
+    arr[i] = Number(arr[i]).toFixed(2)
   }
   return arr;
 }
@@ -265,7 +265,27 @@ export default {
           }
         ],
         tooltip: {
-          trigger: 'axis'
+          trigger: 'axis',
+          valueFormatter: function (val) {  //由于在tooltip里需要展示原始的数据，所以要把映射后的数据反计算回去
+            const step = 2
+            if (val >= 6 && val < 8) {
+              let percent1 = (val - 6) / step;
+              val = percent1 * 1.5 + 6;
+            } else if (val >= 8 && val < 10) {
+              let percent2 = (val - 8) / step;
+              console.log(val, percent2)
+              val = percent2 * 1.5 + 7.5;
+            } else if (val >= 10 && val < 12) {
+              let percent2 = (val - 10) / step;
+              val = percent2 * 1.2 + 9;
+            } else if (val >= 12) {
+              let percent2 = (val - 12) / step;
+              val = percent2 * 2 + 10.2;
+            }
+            console.log(val)
+            val = Number(val).toFixed(2)
+            return val;
+          }
         },
         visualMap: {
           show: false,
@@ -377,19 +397,20 @@ export default {
   methods: {
     // 获取最近7天的时长
     get7DaysData() {
-      const _this=this
+      const _this = this
       const days = [dateBefore(6), dateBefore(5), dateBefore(4), dateBefore(3), dateBefore(2), dateBefore(1), dateBefore(0)]
-      const datas=[]
+      const datas = []
       for (let i = 0; i < days.length; i++) {
-        const dataItem=JSON.parse(localStorage.getItem('data_' + days[i]))
+        const dataItem = JSON.parse(localStorage.getItem('data_' + days[i]))
         console.log(dataItem)
-        const avgHours=dataItem?dataItem.avgHours:0
+        const avgHours = dataItem ? dataItem.avgHours : 0
         datas.push(avgHours)
       }
       console.log(days)
       console.log(datas)
-      this.option.series[0].data=formatData(datas)
-      this.option.xAxis.data=days.map(item=>this.formatTime(new Date(item),'dd'))
+      this.option.series[0].data = formatData(datas)
+      this.option.xAxis.data = days.map(item => this.formatTime(new Date(item), 'dd'))
+
       function dateBefore(day = 0) {
         const now = new Date()
         const oneDay = 1000 * 60 * 60 * 24
@@ -404,7 +425,7 @@ export default {
     // 公告
     open() {
       if (localStorage.getItem('isCheck') === '1') return
-      this.$alert(`<p>1. 可以使用员工之家密码直接登录，不需要再抓包获取32位加密密码</p>
+      this.$alert(`<p>1. 可以使用员工之家密码直接登录，不再需要抓包获取32位加密密码</p>
         <p>2. 缓存每天时长记录，当日只会发送一次请求，防止日活太高</p>
         <p>3. 根据缓存的时长记录生成最近7日平均时长折线图</p>`, '更新 2022-11-23', {
         dangerouslyUseHTMLString: true,
