@@ -204,8 +204,7 @@ function formatData(arr) {    //自己构造一个用来映射data到均匀数�
       arr[i] = percent1 * step + 6;
     } else if (arr[i] >= 7.5 && arr[i] < 9) {
       let percent2 = (arr[i] - 7.5) / 1.5;
-      console.log(arr[i], percent2)
-      arr[i] = percent2 * step + 7.5;
+      arr[i] = percent2 * step + 8;
     } else if (arr[i] >= 9 && arr[i] < 10.2) {
       let percent2 = (arr[i] - 9) / 1.2;
       arr[i] = percent2 * step + 10;
@@ -268,12 +267,12 @@ export default {
           trigger: 'axis',
           valueFormatter: function (val) {  //由于在tooltip里需要展示原始的数据，所以要把映射后的数据反计算回去
             const step = 2
+            console.log(val)
             if (val >= 6 && val < 8) {
               let percent1 = (val - 6) / step;
-              val = percent1 * 1.5 + 6;
+              val = percent1 * 2 + 6;
             } else if (val >= 8 && val < 10) {
               let percent2 = (val - 8) / step;
-              console.log(val, percent2)
               val = percent2 * 1.5 + 7.5;
             } else if (val >= 10 && val < 12) {
               let percent2 = (val - 10) / step;
