@@ -294,23 +294,23 @@ export default {
           show: false,
           pieces: [
             {
-              gt: 6,
+              gt: 0,
               lte: 8,
-              color: '#93CE07'
+              color: '#fe466c'
             },
             {
               gt: 8,
               lte: 10,
-              color: '#FBDB0F'
+              color: '#f5cc00'
             },
             {
               gt: 10,
               lte: 12,
-              color: '#FC7D02'
+              color: '#866afb'
             },
           ],
           outOfRange: {
-            color: '#999'
+            color: '#05caac'
           }
         },
       },
