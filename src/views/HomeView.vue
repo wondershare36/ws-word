@@ -76,11 +76,13 @@
             </el-tooltip>
           </div>
           <div class="bottom-tips">
-            <span>需保持每日时长 <strong style="font-weight: 700;">{{ calData.left_hour102 }}</strong> 小时</span>
+            <span v-if="calData.left_hour102>0">需保持每日时长 <strong style="font-weight: 700;">{{ calData.left_hour102 }}</strong> 小时</span>
+            <span v-else>已超额完成，不需要时长了</span>
           </div>
         </div>
         <div class="bottom-right">
-          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time102, 'hh:mm') }}</span>下班</div>
+          <div v-if="calData.left_time102>0" class="bottom-time"><span class="number">{{ formatTime(calData.left_time102, 'hh:mm') }}</span>下班</div>
+          <div v-else><span class="number">18:00</span>下班</div>
         </div>
       </div>
       <div class="content">
@@ -105,12 +107,14 @@
               </el-icon>
             </el-tooltip>
           </div>
-          <div class="bottom-tips">
-            需保持每日时长 <strong style="font-weight: 700;">{{ calData.left_hour9 }}</strong> 小时
+          <div class="bottom-tips" >
+            <span v-if="calData.left_hour9>0">需保持每日时长 <strong style="font-weight: 700;">{{ calData.left_hour9 }}</strong> 小时</span>
+            <span v-else>已超额完成，不需要时长了</span>
           </div>
         </div>
         <div class="bottom-right">
-          <div class="bottom-time"><span class="number">{{ formatTime(calData.left_time9, 'hh:mm') }}</span>下班</div>
+          <div v-if="calData.left_hour9>0" class="bottom-time" ><span class="number">{{ formatTime(calData.left_time9, 'hh:mm') }}</span>下班</div>
+          <div v-else><span class="number">18:00</span>下班</div>
         </div>
       </div>
     </div>
@@ -334,7 +338,7 @@ export default {
     }
   },
   mounted() {
-    this.open()
+    // this.open()
     if (this.data.name) this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),

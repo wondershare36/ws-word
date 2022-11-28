@@ -21,5 +21,7 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes
 })
-
+router.beforeEach(({ to, from, next }) => {
+  document.title =  '助手'
+})
 export default router
