@@ -190,7 +190,9 @@ import {
   VisualMapComponent
 } from "echarts/components";
 import VChart, {THEME_KEY} from "vue-echarts";
-import {ref, defineComponent} from "vue";
+import shence from '../js/shence.min'
+
+console.log('wsl',shence)
 
 use([
   CanvasRenderer,
@@ -334,11 +336,13 @@ export default {
         passwordStr: [
           {required: true, message: '请输入密码', trigger: 'blur'},
         ],
-      }
+      },
+      prefix:'ws_work'
     }
   },
   mounted() {
     // this.open()
+    this.initTrigger()
     if (this.data.name) this.getWordDay()
     this.form = {
       wsId: localStorage.getItem('wsId'),
@@ -398,6 +402,25 @@ export default {
     },
   },
   methods: {
+    initTrigger() {
+      if (!window["sensorsDataAnalytic201505"]) return;
+      this.sensors = window["sensorsDataAnalytic201505"];
+      this.sensors.init({
+        server_url: "https://analytics.wondershare.cc:8106/sa?project=EdrawMax_PC",
+        is_track_single_page: true, // 单页面配置，默认开启，若页面中有锚点设计，需要将该配置删除，否则触发锚点会多触发 $pageview 事件
+        use_client_time: true,
+        send_type: "beacon",
+        show_log: true,
+        heatmap: {
+          //是否开启点击图，default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭
+          clickmap: "not_collect",
+          //是否开启触达注意力图，not_collect 表示关闭，不会自动采集 $WebStay 事件，可以设置 'default' 表示开启
+          scroll_notice_map: "not_collect",
+          // 通过 collect_tags 配置是否开启 div 的全埋点采集，默认不采集。
+        },
+      });
+      this.sensors.track(this.prefix+'_uv')
+    },
     // 获取最近7天的时长
     get7DaysData() {
       const _this = this
@@ -405,7 +428,6 @@ export default {
       const datas = []
       for (let i = 0; i < days.length; i++) {
         const dataItem = JSON.parse(localStorage.getItem('data_' + days[i]))
-        console.log(dataItem)
         const avgHours = dataItem ? dataItem.avgHours : 0
         datas.push(avgHours)
       }
@@ -483,6 +505,7 @@ export default {
         this.data = data
         if (wsId) console.log(localStorage.getItem('basicInfo_' + wsId))
       }
+
       this.get7DaysData()
     },
     // 需要账号和密码，只能查自己的，有姓名
@@ -516,6 +539,9 @@ export default {
         ...response.data.data
       }
       localStorage.setItem(`data_${this.today}`, JSON.stringify(this.data))
+      this.sensors.track(this.prefix+'_data',{
+        ...this.data
+      })
     },
     // 查个人信息，需要账号和密码，wsId可以查别人的
     async getData3(wsId) {
