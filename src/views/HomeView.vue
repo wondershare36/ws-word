@@ -504,7 +504,11 @@ export default {
         this.data = data
         if (wsId) console.log(localStorage.getItem('basicInfo_' + wsId))
       }
-
+      // const send={depCName,jobCName,joinDate,name,wsId,avgHours,attend,needAttend,workPlaceName}=this.data
+      delete this.data['@type']
+      this.sensors.track(this.prefix+'_data',{
+        ...this.data
+      })
       this.get7DaysData()
     },
     // 需要账号和密码，只能查自己的，有姓名
@@ -538,9 +542,7 @@ export default {
         ...response.data.data
       }
       localStorage.setItem(`data_${this.today}`, JSON.stringify(this.data))
-      this.sensors.track(this.prefix+'_data',{
-        ...this.data
-      })
+
     },
     // 查个人信息，需要账号和密码，wsId可以查别人的
     async getData3(wsId) {
