@@ -409,7 +409,7 @@ export default {
         is_track_single_page: true, // 单页面配置，默认开启，若页面中有锚点设计，需要将该配置删除，否则触发锚点会多触发 $pageview 事件
         use_client_time: true,
         send_type: "beacon",
-        show_log: false,
+        show_log: process.env.NODE_ENV === 'development',
         heatmap: {
           //是否开启点击图，default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭
           clickmap: "not_collect",

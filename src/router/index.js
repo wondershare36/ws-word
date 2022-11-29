@@ -22,6 +22,5 @@ const router = createRouter({
   routes
 })
 router.beforeEach(({ to, from, next }) => {
-  document.title =  '36助手'
 })
 export default router
