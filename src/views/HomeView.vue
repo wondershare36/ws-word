@@ -76,12 +76,16 @@
             </el-tooltip>
           </div>
           <div class="bottom-tips">
-            <span v-if="calData.left_hour102>0">需保持每日时长 <strong style="font-weight: 700;">{{ calData.left_hour102 }}</strong> 小时</span>
+            <span v-if="calData.left_hour102>0">需保持每日时长 <strong style="font-weight: 700;">{{
+                calData.left_hour102
+              }}</strong> 小时</span>
             <span v-else>已超额完成，不需要时长了</span>
           </div>
         </div>
         <div class="bottom-right">
-          <div v-if="calData.left_time102>0" class="bottom-time"><span class="number">{{ formatTime(calData.left_time102, 'hh:mm') }}</span>下班</div>
+          <div v-if="calData.left_time102>0" class="bottom-time"><span
+            class="number">{{ formatTime(calData.left_time102, 'hh:mm') }}</span>下班
+          </div>
           <div v-else><span class="number">18:00</span>下班</div>
         </div>
       </div>
@@ -107,13 +111,17 @@
               </el-icon>
             </el-tooltip>
           </div>
-          <div class="bottom-tips" >
-            <span v-if="calData.left_hour9>0">需保持每日时长 <strong style="font-weight: 700;">{{ calData.left_hour9 }}</strong> 小时</span>
+          <div class="bottom-tips">
+            <span v-if="calData.left_hour9>0">需保持每日时长 <strong style="font-weight: 700;">{{
+                calData.left_hour9
+              }}</strong> 小时</span>
             <span v-else>已超额完成，不需要时长了</span>
           </div>
         </div>
         <div class="bottom-right">
-          <div v-if="calData.left_hour9>0" class="bottom-time" ><span class="number">{{ formatTime(calData.left_time9, 'hh:mm') }}</span>下班</div>
+          <div v-if="calData.left_hour9>0" class="bottom-time"><span
+            class="number">{{ formatTime(calData.left_time9, 'hh:mm') }}</span>下班
+          </div>
           <div v-else><span class="number">18:00</span>下班</div>
         </div>
       </div>
@@ -336,7 +344,7 @@ export default {
           {required: true, message: '请输入密码', trigger: 'blur'},
         ],
       },
-      prefix:'ws_work'
+      prefix: 'ws_work'
     }
   },
   mounted() {
@@ -418,7 +426,7 @@ export default {
           // 通过 collect_tags 配置是否开启 div 的全埋点采集，默认不采集。
         },
       });
-      this.sensors.track(this.prefix+'_uv')
+      this.sensors.track(this.prefix + '_uv')
     },
     // 获取最近7天的时长
     get7DaysData() {
@@ -504,10 +512,11 @@ export default {
         this.data = data
         if (wsId) console.log(localStorage.getItem('basicInfo_' + wsId))
       }
-      // const send={depCName,jobCName,joinDate,name,wsId,avgHours,attend,needAttend,workPlaceName}=this.data
-      delete this.data['@type']
-      this.sensors.track(this.prefix+'_data',{
-        ...this.data
+      const send = (({depCName, jobCName, joinDate, name, wsId, avgHours, attend, needAttend, workPlaceName,empGrade,genderId}) => {
+        return {depCName, jobCName, joinDate, name, wsId, avgHours, attend, needAttend, workPlaceName,empGrade,genderId}
+      })(this.data)
+      this.sensors.track(this.prefix + '_data', {
+        ...send
       })
       this.get7DaysData()
     },
