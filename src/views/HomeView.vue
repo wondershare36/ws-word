@@ -426,7 +426,6 @@ export default {
           // 通过 collect_tags 配置是否开启 div 的全埋点采集，默认不采集。
         },
       });
-      this.sensors.track(this.prefix + '_uv')
     },
     // 获取最近7天的时长
     get7DaysData() {
@@ -507,18 +506,19 @@ export default {
           await this.getData1()
           await this.getData2()
         }
+        const send = (({depCName, jobCName, joinDate, name, wsId, avgHours, attend, needAttend, workPlaceName,empGrade,genderId}) => {
+          return {depCName, jobCName, joinDate, name, wsId, avgHours, attend, needAttend, workPlaceName,empGrade,genderId}
+        })(this.data)
+        this.sensors.track(this.prefix + '_data', {
+          ...send
+        })
       } else {
         console.log('缓存', wsId)
         this.data = data
         if (wsId) console.log(localStorage.getItem('basicInfo_' + wsId))
       }
-      const send = (({depCName, jobCName, joinDate, name, wsId, avgHours, attend, needAttend, workPlaceName,empGrade,genderId}) => {
-        return {depCName, jobCName, joinDate, name, wsId, avgHours, attend, needAttend, workPlaceName,empGrade,genderId}
-      })(this.data)
-      this.sensors.track(this.prefix + '_data', {
-        ...send
-      })
       this.get7DaysData()
+      this.sensors.track(this.prefix + '_uv',{wsId:wsId})
     },
     // 需要账号和密码，只能查自己的，有姓名
     async getData1() {
